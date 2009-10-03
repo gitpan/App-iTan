@@ -5,6 +5,8 @@ use utf8;
 use Moose;
 use 5.0100;
 
+our $VERSION = $App::iTan::VERSION;
+
 extends qw(MooseX::App::Cmd::Command);
 with qw(App::iTan::Utils);
 
@@ -31,8 +33,8 @@ has 'overwrite' => (
 );
 
 
-sub run {
-    my ($self) = @_;
+sub execute {
+    my ( $self, $opts, $args ) = @_;
     
     my @itans = $self->file->slurp(chomp => 1)
         or die ('Cannot read file '.$self->file->stringify);
@@ -83,12 +85,15 @@ sub run {
     return;
 }
 
+__PACKAGE__->meta->make_immutable;
 
 =head1 NAME 
 
 App::iTan::Command::import - Import a set of itans
 
 =head1 DESCRIPTION
+
+See L<App::iTan> for detailed documentation
 
 =cut
 

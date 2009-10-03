@@ -5,11 +5,13 @@ use utf8;
 use Moose;
 use 5.0100;
 
+our $VERSION = $App::iTan::VERSION;
+
 extends qw(MooseX::App::Cmd::Command);
 with qw(App::iTan::Utils);
 
-sub run {
-    my ($self) = @_;
+sub execute {
+    my ( $self, $opts, $args ) = @_;
     
     say 'All unused iTAN have been marked as invalid';
     
@@ -19,11 +21,15 @@ sub run {
     return;
 }
 
+__PACKAGE__->meta->make_immutable;
+
 =head1 NAME 
 
 App::iTan::Command::reset - Mark all unused tans as invalid
 
 =head1 DESCRIPTION
+
+See L<App::iTan> for detailed documentation
 
 =cut
 

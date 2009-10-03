@@ -13,7 +13,7 @@ use DBI;
 use Crypt::Twofish;
 use DateTime;
 
-=head1 NAME 
+=head1 NAME
 
 App::iTan::Utils - Utility methods
 
@@ -63,7 +63,6 @@ has 'database' => (
         return Path::Class::File->new( $ENV{HOME}, '.itan' );
     },
 );
-
 
 has 'dbh' => (
     is      => 'ro',

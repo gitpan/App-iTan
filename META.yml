@@ -1,10 +1,11 @@
 ---
-abstract: 'Manage iTans for online banking'
+abstract: 'Secure management of iTans for online banking from'
 author:
   - 'Maroš Kollár'
 build_requires:
+  Expect: 0
   ExtUtils::MakeMaker: 6.42
-  Test::NoWarnings: 0
+  File::Temp: 0
 configure_requires:
   ExtUtils::MakeMaker: 6.42
 distribution_type: module
@@ -33,4 +34,4 @@ requires:
 resources:
   license: http://dev.perl.org/licenses/
   repository: git://github.com/maros/App-iTan.git
-version: 0.900_001
+version: 1.000

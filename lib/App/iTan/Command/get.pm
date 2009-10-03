@@ -5,6 +5,8 @@ use utf8;
 use Moose;
 use 5.0100;
 
+our $VERSION = $App::iTan::VERSION;
+
 extends qw(MooseX::App::Cmd::Command);
 with qw(App::iTan::Utils);
 
@@ -32,8 +34,8 @@ has 'memo' => (
     documentation => q[Optional memo for the iTan usage],
 );
 
-sub run {
-    my ($self) = @_;
+sub execute {
+    my ( $self, $opts, $args ) = @_;
     
     if ($self->next) {
         my ($index) = $self->dbh->selectrow_array("SELECT tindex FROM itan WHERE used IS NULL AND valid = 1 ORDER BY tindex LIMIT 1");
@@ -63,11 +65,15 @@ sub run {
     return;
 }
 
+__PACKAGE__->meta->make_immutable;
+
 =head1 NAME 
 
 App::iTan::Command::get - Fetch a single iTan and mark is as used
 
 =head1 DESCRIPTION
+
+See L<App::iTan> for detailed documentation
 
 =cut
 
