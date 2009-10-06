@@ -1,5 +1,5 @@
 ---
-abstract: 'Secure management of iTans for online banking from'
+abstract: 'Secure management of iTans for online banking'
 author:
   - 'Maroš Kollár'
 build_requires:
@@ -21,6 +21,7 @@ no_index:
     - t
     - xt
 requires:
+  Crypt::Twofish: 0
   DBD::SQLite: 0
   DBI: 0
   DateTime: 0
@@ -29,9 +30,10 @@ requires:
   MooseX::Getopt: 0
   Params::Coerce: 0
   Path::Class: 0
+  Term::ReadKey: 0
   Text::Table: 0
   perl: 5.10.0
 resources:
   license: http://dev.perl.org/licenses/
   repository: git://github.com/maros/App-iTan.git
-version: 1.000
+version: 1.010
