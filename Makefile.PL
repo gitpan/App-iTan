@@ -2,9 +2,13 @@
 use strict;
 use inc::Module::Install;
 
+my $from = 'lib/App/iTan.pm';
+
 # Define metadata
 name            'App-iTan';
-all_from        'lib/App/iTan.pm';
+all_from        $from;
+readme_from     $from;
+readme_markdown_from $from;
 
 perl_version    '5.010';
 
@@ -23,6 +27,18 @@ requires        'Term::ReadKey'         => 0;
 
 build_requires  'File::Temp'            => 0;
 build_requires  'Expect'                => 0;
+
+author_requires 'Test::Pod'             => '1.14';
+author_requires 'Test::Pod::Coverage'   => '1.04';
+author_requires 'Test::Perl::Critic'    => 0;
+author_requires 'Module::Install::ReadmeMarkdownFromPod'=> 0;
+author_requires 'Module::Install::ReadmeFromPod'        => 0;
+
+if ($^O eq 'darwin') {
+    recommends 'Mac::Pasteboard';
+} else {
+    recommends 'Clipboard';
+}
 
 install_script 'bin/itan';
 

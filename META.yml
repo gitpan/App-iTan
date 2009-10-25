@@ -20,6 +20,8 @@ no_index:
     - inc
     - t
     - xt
+recommends:
+  Mac::Pasteboard: 0
 requires:
   Crypt::Twofish: 0
   DBD::SQLite: 0
@@ -36,4 +38,4 @@ requires:
 resources:
   license: http://dev.perl.org/licenses/
   repository: git://github.com/maros/App-iTan.git
-version: 1.010
+version: 1.020
