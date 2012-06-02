@@ -1,5 +1,5 @@
 # ================================================================
-package App::iTan::Command::reset;
+package App::iTan::Command::Reset;
 # ================================================================
 use utf8;
 use Moose;
@@ -7,13 +7,13 @@ use 5.0100;
 
 our $VERSION = $App::iTan::VERSION;
 
-extends qw(MooseX::App::Cmd::Command);
+use MooseX::App::Command;
 with qw(App::iTan::Utils);
 
 sub execute {
     my ( $self, $opts, $args ) = @_;
     
-    say 'All unused iTAN have been marked as invalid';
+    say 'All unused iTANs have been marked as invalid';
     
     $self->dbh->do('UPDATE itan SET valid = 0')
          or die "ERROR: Cannot execute: " . $self->dbh->errstr();
@@ -22,16 +22,22 @@ sub execute {
 }
 
 __PACKAGE__->meta->make_immutable;
+1;
 
-=head1 NAME 
+=pod
 
-App::iTan::Command::reset - Mark all unused tans as invalid
+=encoding utf8
+
+=head1 NAME
+
+App::iTan::Command::Reset - Reset unused iTANs
+
+=head1 SYNOPSIS
+
+ itan reset
 
 =head1 DESCRIPTION
 
-See L<App::iTan> for detailed documentation
+Mark all unused iTANs as invalid
 
 =cut
-
-
-1;

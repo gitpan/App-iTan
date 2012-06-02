@@ -4,11 +4,14 @@ package App::iTan::Utils;
 use utf8;
 use strict; # Make cpants happy
 use Moose::Role;
+use MooseX::App::Role;
 use 5.0100;
 
 use Path::Class;
 use Params::Coerce;
-use Moose::Util::TypeConstraints;
+use MooseX::Types::Path::Class;
+use File::HomeDir;
+
 use Term::ReadKey;
 use DBI;
 use Crypt::Twofish;
@@ -16,58 +19,63 @@ use DateTime;
 
 =head1 NAME
 
-App::iTan::Utils - Utility methods
+App::iTan::Utils - Utility methods role
 
 =head1 METHODS
+
+=head2 Accessors
+
+=head3 database
+
+Path to the database as a L<Path::Class::File> object.
+
+=head3 dbh
+
+Active database handle
+
+=head3 cipher 
+
+L<Crypt::Twofish> cipher object
+
+=head2 Methods
 
 =head3 get
 
  my $tandata = $self->get($index);
- 
+
 Fetches a valid iTan with the given index.
 
 =head3 mark
 
  $self->mark($index[,$memo]);
 
-Marks the iTan with the given index as used.
+=head3 crypt_string
+
+ my $crypt = $self->crypt_string($string);
+
+Encrpyts a string
+
+=head3 decrypt_string
+
+ my $string = $self->decrypt_string($crypt);
+
+Decrpyts a string
 
 =cut
 
-#subtype 'Directory' => as class_type('Path::Class::Dir');
-#
-#coerce 'Directory' => from 'Str' => via {
-#    Path::Class::Dir->new($_);
-#} => from 'ArrayRef[Str]' => via {
-#    Path::Class::Dir->new( @{$_} );
-#};
-
-subtype 'File' => as class_type('Path::Class::File');
-
-coerce 'File' => from 'Str' => via {
-    Path::Class::File->new($_);
-} => from 'ArrayRef[Str]' => via {
-    Path::Class::File->new( @{$_} );
-};
-
-MooseX::Getopt::OptionTypeMap->add_option_type_to_map( 'File' => '=s' );
-#MooseX::Getopt::OptionTypeMap->add_option_type_to_map( 'Directory' => '=s' );
-
-has 'database' => (
+option 'database' => (
     is            => 'ro',
-    traits        => ['Getopt'],
+    isa           => 'Path::Class::File',
     required      => 1,
-    isa           => 'File',
     coerce        => 1,
-    documentation => q[Path to the database file. Defaults to ~/.itan],
+    documentation => q[Path to the iTAN database file. Defaults to ~/.itan],
     default       => sub {
-        return Path::Class::File->new( $ENV{HOME}, '.itan' );
+        return Path::Class::File->new( File::HomeDir->my_home, '.itan' );
     },
 );
 
 has 'dbh' => (
     is      => 'ro',
-    traits  => ['NoGetopt'],
     lazy    => 1,
     isa     => 'DBI::db',
     builder => '_build_dbh'
@@ -75,7 +83,6 @@ has 'dbh' => (
 
 has 'cipher' => (
     is      => 'rw',
-    traits  => ['NoGetopt'],
     lazy    => 1,
     isa     => 'Crypt::Twofish',
     builder => '_build_cipher'
@@ -101,7 +108,10 @@ sub _build_dbh {
 
 
     my @list;
-    my $sth = $dbh->prepare('SELECT name FROM sqlite_master WHERE type=? ORDER BY name');
+    my $sth = $dbh->prepare('SELECT name 
+        FROM sqlite_master 
+        WHERE type=? 
+        ORDER BY name');
     $sth->execute('table');
     while (my $name = $sth->fetchrow_array) {
         push @list,$name;
@@ -113,14 +123,24 @@ sub _build_dbh {
 
         my $password = $self->_get_password();
         $self->cipher(Crypt::Twofish->new($password));
-        my $crypted  = $self->_crypt_string($password);
+        my $crypted  = $self->crypt_string($password);
         
         $dbh->do(
-            q[CREATE TABLE itan (tindex INTEGER NOT NULL, itan VARCHAR NOT NULL, imported VARCHAR NOT NULL, used VARCHAR, valid VARCHAR, memo VARCHAR)]
+            q[CREATE TABLE itan (
+                tindex INTEGER NOT NULL, 
+                itan VARCHAR NOT NULL, 
+                imported VARCHAR NOT NULL, 
+                used VARCHAR, 
+                valid VARCHAR, 
+                memo VARCHAR
+            )]
         ) or die "ERROR: Cannot execute: " . $dbh->errstr();
         
         $dbh->do(
-            q[CREATE TABLE system (name VARCHAR NOT NULL, value VARCHAR NOT NULL)]
+            q[CREATE TABLE system (
+                name VARCHAR NOT NULL, 
+                value VARCHAR NOT NULL
+            )]
         ) or die "ERROR: Cannot execute: " . $dbh->errstr();
         
         my $sth = $dbh->prepare(q[INSERT INTO system (name,value) VALUES (?,?)]);
@@ -150,7 +170,7 @@ sub _build_cipher {
     my $stored_password = $self->dbh->selectrow_array("SELECT value FROM system WHERE name = 'password'")   
         or die "ERROR: Cannot query: " . $self->dbh->errstr();
     
-    unless ( $self->_decrypt_string($stored_password) eq $password) {
+    unless ( $self->decrypt_string($stored_password) eq $password) {
         die "ERROR: Invalid password";
     }
     
@@ -161,8 +181,17 @@ sub _parse_date {
     my ( $self, $date ) = @_;
 
     return
-        unless defined $date && $date
-            =~ m/^(?<year>\d{4})\/(?<month>\d{1,2})\/(?<day>\d{1,2})\s(?<hour>\d{1,2}):(?<minute>\d{1,2})$/;
+        unless defined $date && $date =~ m/^
+            (?<year>\d{4})
+            \/
+            (?<month>\d{1,2})
+            \/
+            (?<day>\d{1,2})
+            \s
+            (?<hour>\d{1,2})
+            :
+            (?<minute>\d{1,2})
+            $/x;
 
     return DateTime->new(
         year   => $+{year},
@@ -173,7 +202,7 @@ sub _parse_date {
     );
 }
 
-sub _crypt_string {
+sub crypt_string {
     my ( $self, $string ) = @_;
 
     use bytes;
@@ -185,7 +214,7 @@ sub _crypt_string {
     return $self->cipher->encrypt($string);
 }
 
-sub _decrypt_string {
+sub decrypt_string {
     my ( $self, $data ) = @_;
 
     my $tan = $self->cipher->decrypt($data);
@@ -201,7 +230,7 @@ sub _get_password {
     my $password;
 
     ReadMode 2;
-    say 'Please enter a password:';
+    say 'Please enter your password:';
     while ( not defined( $password = ReadLine(-1) ) ) {
         # no key pressed yet
     }
@@ -234,7 +263,15 @@ sub _get_password {
 sub get {
     my ($self,$index) = @_;
     
-    my $sth = $self->dbh->prepare('SELECT tindex,itan,imported,used,memo FROM itan WHERE tindex = ? AND valid = 1')
+    my $sth = $self->dbh->prepare('SELECT 
+            tindex,
+            itan,
+            imported,
+            used,
+            memo 
+        FROM itan 
+        WHERE tindex = ? 
+        AND valid = 1')
         or die "ERROR: Cannot prepare: " . $self->dbh->errstr();
     $sth->execute($index)
         or die "ERROR: Cannot execute: " . $sth->errstr();
@@ -247,7 +284,7 @@ sub get {
 
     $data->{imported} = $self->_parse_date($data->{imported});
     $data->{used} = $self->_parse_date($data->{used});
-    #$data->{itan} = $self->_decrypt_tan($data->{itan}); 
+    #$data->{itan} = $self->decrypt_tan($data->{itan}); 
     
     return $data;
 }

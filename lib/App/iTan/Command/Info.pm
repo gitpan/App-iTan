@@ -1,5 +1,5 @@
 # ================================================================
-package App::iTan::Command::info;
+package App::iTan::Command::Info;
 # ================================================================
 use utf8;
 use Moose;
@@ -7,14 +7,14 @@ use 5.0100;
 
 our $VERSION = $App::iTan::VERSION;
 
-extends qw(MooseX::App::Cmd::Command);
+use MooseX::App::Command;
 with qw(App::iTan::Utils);
 
-has 'index' => (
+option 'index' => (
     is            => 'ro',
     isa           => 'Int',
     required      => 1,
-    documentation => q[iTan index number that should be fetched],
+    documentation => q[iTAN index number that should be fetched],
 );
 
 use Text::Table;
@@ -39,7 +39,7 @@ sub execute {
         $tb->add(
             $tan_data->{tindex},
             $tan_data->{valid},
-            $self->_decrypt_string( $tan_data->{itan} ),
+            $self->decrypt_string( $tan_data->{itan} ),
             $tan_data->{imported},
             $tan_data->{used},
             $tan_data->{memo} );
@@ -53,15 +53,28 @@ sub execute {
 }
 
 __PACKAGE__->meta->make_immutable;
+1;
 
-=head1 NAME 
+=pod
 
-App::iTan::Command::info - Fetch info for a tan index number
+=encoding utf8
+
+=head1 NAME
+
+App::iTan::Command::Info - Info about the selected iTAN
+
+=head1 SYNOPSIS
+
+ itan info --index INDEX
 
 =head1 DESCRIPTION
 
-See L<App::iTan> for detailed documentation
+Will print a detailed report about the selected iTAN
+
+=head1 OPTIONS
+
+=head2 index
+
+iTAN index number that should be fetched
 
 =cut
-
-1;
