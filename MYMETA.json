@@ -4,7 +4,7 @@
       "Maroš Kollár"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Module::Install version 1.06, CPAN::Meta::Converter version 2.120630",
+   "generated_by" : "Module::Install version 1.06, CPAN::Meta::Converter version 2.133380",
    "license" : [
       "perl_5"
    ],
@@ -60,8 +60,9 @@
          "http://dev.perl.org/licenses/"
       ],
       "repository" : {
+         "type" : "git",
          "url" : "git://github.com/maros/App-iTan.git"
       }
    },
-   "version" : "1.03"
+   "version" : "1.04"
 }

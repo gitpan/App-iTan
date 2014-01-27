@@ -2,7 +2,6 @@
 package App::iTan::Utils;
 # ================================================================
 use utf8;
-use strict; # Make cpants happy
 use Moose::Role;
 use MooseX::App::Role;
 use 5.0100;
@@ -88,12 +87,12 @@ has 'cipher' => (
     builder => '_build_cipher'
 );
 
-sub DEMOLISH {
-    my ($self) = @_;
-
-    $self->dbh->disconnect();
-    return;
-}
+#sub DEMOLISH {
+#    my ($self) = @_;
+#
+#    $self->dbh->disconnect();
+#    return;
+#}
 
 sub _build_dbh {
     my ($self) = @_;
@@ -118,7 +117,7 @@ sub _build_dbh {
     }
     $sth->finish();
     
-    unless ( 'itan' ~~ @list ) {
+    unless ( grep { $_ eq 'itan' } @list ) {
         say "Initializing iTAN database ...";
 
         my $password = $self->_get_password();
@@ -237,23 +236,23 @@ sub _get_password {
     ReadMode 0;
     chomp($password);
 
-    use bytes;
-    given ( length $password ) {
-        when ( 16 ) {
-            # ok
-        }
-        when ( $_ < 4 ) {
-            die('ERROR: Password is too short (Min 4 bytes required)');
-        }
-        when ( $_ > 16 ) {
-            die('ERROR: Password is too long (Max 16 bytes allowed)');
-        }
-        default {
-            while (1) {
-                $password .= '0';
-                last 
-                    if length $password == 16;
-            }
+    my $length;
+    {
+        use bytes;
+        $length = length $password;
+    }
+    
+    if ($length == 16) {
+        # ok
+    } elsif ($length < 4) {
+        die('ERROR: Password is too short (Min 4 bytes required)');
+    } elsif ($length > 16) {
+        die('ERROR: Password is too long (Max 16 bytes allowed)');
+    } else {
+        while (1) {
+            $password .= '0';
+            last 
+                if length $password == 16;
         }
     }
     
